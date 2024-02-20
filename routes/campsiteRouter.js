@@ -16,7 +16,7 @@ campsiteRouter.route('/')
     .catch(err => next(err));
 })
 // Authorizes admins only.
-.post(authenticate.verifyAdmin, (req, res, next) => {
+.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Campsite.create(req.body)
     .then(campsite => {
         console.log('Campsite Created ', campsite);
@@ -31,7 +31,7 @@ campsiteRouter.route('/')
     res.end('PUT operation not supported on /campsites');
 })
 // Authorizes admins only.
-.delete(authenticate.verifyAdmin, (req, res, next) => {
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Campsite.deleteMany()
     .then(response => {
         res.statusCode = 200;
@@ -57,7 +57,7 @@ campsiteRouter.route('/:campsiteId')
     res.end(`POST operation not supported on /campsites/${req.params.campsiteId}`);
 })
 // Authorizes admins only.
-.put(authenticate.verifyAdmin, (req, res, next) => {
+.put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Campsite.findByIdAndUpdate(req.params.campsiteId, {
         $set: req.body
     }, { new: true })
@@ -69,7 +69,7 @@ campsiteRouter.route('/:campsiteId')
     .catch(err => next(err));
 })
 // Authorizes admins only.
-.delete(authenticate.verifyAdmin, (req, res, next) => {
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Campsite.findByIdAndDelete(req.params.campsiteId)
     .then(response => {
         res.statusCode = 200;
@@ -122,7 +122,7 @@ campsiteRouter.route('/:campsiteId/comments')
     res.end(`PUT operation not supported on /campsites/${req.params.campsiteId}/comments`);
 })
 // Authorizes admins only.
-.delete(authenticate.verifyAdmin, (req, res, next) => {
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Campsite.findById(req.params.campsiteId)
     .then(campsite => {
         if (campsite) {
