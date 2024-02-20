@@ -12,7 +12,7 @@ router.get('/', authenticate.verifyUser, authenticate.verifyAdmin, function(req,
     User.find().then(users => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.json(users)
+        res.json(users);
     }).catch(err => next(err))
 });
 
