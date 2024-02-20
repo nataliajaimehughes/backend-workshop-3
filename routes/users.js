@@ -8,8 +8,12 @@ const router = express.Router();
 /* GET users listing. */
 // TODO: Implement GET / route to return all users (remove the mock response in line 12).
 // TODO: authorize admins only!
-router.get('/', (req, res, next) => {
-    res.send('respond with a resource');
+router.get('/', authenticate.verifyUser, authenticate.verifyAdmin, function(req, res, next) {
+    User.find().then(users => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(users)
+    }).catch(err => next(err))
 });
 
 router.post('/signup', (req, res) => {
