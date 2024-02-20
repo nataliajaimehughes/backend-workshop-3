@@ -6,8 +6,8 @@ const authenticate = require('../authenticate');
 const router = express.Router();
 
 /* GET users listing. */
-// TODO: Implement GET / route to return all users (remove the mock response in line 12).
-// TODO: authorize admins only!
+// Implements GET / route to return all users.
+// Authorizes only admins.
 router.get('/', authenticate.verifyUser, authenticate.verifyAdmin, function(req, res, next) {
     User.find().then(users => {
         res.statusCode = 200;

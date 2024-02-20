@@ -56,7 +56,7 @@ campsiteRouter.route('/:campsiteId')
     res.statusCode = 403;
     res.end(`POST operation not supported on /campsites/${req.params.campsiteId}`);
 })
-// Authorizes admins only.
+// Authorizes only admins.
 .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Campsite.findByIdAndUpdate(req.params.campsiteId, {
         $set: req.body
@@ -68,7 +68,7 @@ campsiteRouter.route('/:campsiteId')
     })
     .catch(err => next(err));
 })
-// Authorizes admins only.
+// Authorizes only admins.
 .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Campsite.findByIdAndDelete(req.params.campsiteId)
     .then(response => {
@@ -121,7 +121,7 @@ campsiteRouter.route('/:campsiteId/comments')
     res.statusCode = 403;
     res.end(`PUT operation not supported on /campsites/${req.params.campsiteId}/comments`);
 })
-// Authorizes admins only.
+// Authorizes only admins.
 .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Campsite.findById(req.params.campsiteId)
     .then(campsite => {
@@ -170,8 +170,10 @@ campsiteRouter.route('/:campsiteId/comments/:commentId')
     res.statusCode = 403;
     res.end(`POST operation not supported on /campsites/${req.params.campsiteId}/comments/${req.params.commentId}`);
 })
-// Allow logged-in users to update any comments that they themselves submitted.
+// Allows logged-in users to update any comments that they themselves submitted.
 .put(authenticate.verifyUser, (req, res, next) => {
+    
+    
     Campsite.findById(req.params.campsiteId)
         .then(campsite => {
             if (campsite && campsite.comments.id(req.params.commentId)) {
@@ -191,11 +193,11 @@ campsiteRouter.route('/:campsiteId/comments/:commentId')
                     .catch(err => next(err));
             } else if (!campsite) {
                 const err = new Error(`Campsite ${req.params.campsiteId} not found`);
-                err.status = 404;
+                err.status = 403;
                 return next(err);
             } else {
                 const err = new Error(`Comment ${req.params.commentId} not found`);
-                err.status = 404;
+                err.status = 403;
                 return next(err);
             }
         })
@@ -203,28 +205,30 @@ campsiteRouter.route('/:campsiteId/comments/:commentId')
 })
 // Allows logged-in users to delete any comments that they themselves submitted.
 .delete(authenticate.verifyUser, (req, res, next) => {
+    // const { campsiteId, commentId } = req.params;
+    
     Campsite.findById(req.params.campsiteId)
         .then(campsite => {
             if (campsite && campsite.comments.id(req.params.commentId)) {
-                const comment = campsite.comments.id(req.params.commentId);
-                comment.remove();
-                campsite.save()
+                if((campsite.comments.id(req.params.commentId).author._id).equals(req.user._id)) {
+                    campsite.comments.id(req.params.commentId).remove();
+                    campsite.save()
                     .then(campsite => {
                         res.statusCode = 200;
                         res.setHeader('Content-Type', 'application/json');
                         res.json(campsite);
                     })
                     .catch(err => next(err));
-            } else if (!campsite) {
-                const err = new Error(`Campsite ${req.params.campsiteId} not found`);
-                err.status = 404;
-                return next(err);
-            } else {
-                const err = new Error(`Comment ${req.params.commentId} not found`);
-                err.status = 404;
-                return next(err);
-            }
-        })
+                } else if (!campsite) {
+                    const err = new Error(`Campsite ${req.params.campsiteId} not found`);
+                    err.status = 403;
+                    return next(err);
+                } else {
+                    const err = new Error(`You are not authorized to delete this comment.`);
+                    err.status = 403;
+                    return next(err); 
+                } 
+        }})
         .catch(err => next(err));
 });
 
